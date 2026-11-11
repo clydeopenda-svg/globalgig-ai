@@ -92,11 +92,29 @@ export async function getGig(id: number): Promise<Gig | null> {
 }
 
 /**
- * Saves an analysed opportunity as a project in one transaction: the gig, its
- * recommended price and the AI-planned milestones (amounts derived from the
- * price so they always sum to it).
+ * Saves a job post as an "opportunity": captured in the pipeline but not yet
+ * analysed. The freelancer can analyse it later from the AI Gig Studio.
  */
-export async function createGigFromAnalysis(input: {
+export async function createOpportunity(input: { title: string; clientName: string; description: string }): Promise<number> {
+  const db = await getDb();
+  const rs = await db.execute({
+    sql: "INSERT INTO gigs (title, client_name, description, status) VALUES (?, ?, ?, 'opportunity')",
+    args: [input.title, input.clientName, input.description],
+  });
+  return Number(rs.lastInsertRowid);
+}
+
+/**
+ * Saves an analysed opportunity as a project in one transaction: the gig, its
+ * chosen price and the AI-planned milestones (amounts derived from the price
+ * so they always sum to it).
+ *
+ * With `gigId`, an existing *opportunity* is upgraded in place instead of a
+ * new project being created. Only un-analysed opportunities qualify, so this
+ * can never overwrite milestones that already have payments.
+ */
+export async function saveAnalysedGig(input: {
+  gigId?: number;
   description: string;
   clientName: string;
   analysis: GigAnalysis;
@@ -110,19 +128,25 @@ export async function createGigFromAnalysis(input: {
 
   const tx = await db.transaction("write");
   try {
-    const rs = await tx.execute({
-      sql: `INSERT INTO gigs (title, client_name, description, status, analysis_json, analysis_source, price_cents)
-            VALUES (?, ?, ?, 'analysed', ?, ?, ?)`,
-      args: [
-        input.analysis.title,
-        input.clientName,
-        input.description,
-        JSON.stringify(input.analysis),
-        input.source,
-        priceCents,
-      ],
-    });
-    const gigId = Number(rs.lastInsertRowid);
+    let gigId: number;
+    const args = [input.analysis.title, input.clientName, input.description, JSON.stringify(input.analysis), input.source, priceCents];
+    if (input.gigId) {
+      const rs = await tx.execute({
+        sql: `UPDATE gigs SET title = ?, client_name = ?, description = ?, analysis_json = ?, analysis_source = ?,
+                price_cents = ?, status = 'analysed', updated_at = datetime('now')
+              WHERE id = ? AND status = 'opportunity'`,
+        args: [...args, input.gigId],
+      });
+      if (rs.rowsAffected === 0) throw new PlanError("Only un-analysed opportunities can be analysed from the studio.");
+      gigId = input.gigId;
+    } else {
+      const rs = await tx.execute({
+        sql: `INSERT INTO gigs (title, client_name, description, analysis_json, analysis_source, price_cents, status)
+              VALUES (?, ?, ?, ?, ?, ?, 'analysed')`,
+        args,
+      });
+      gigId = Number(rs.lastInsertRowid);
+    }
     for (const [i, m] of input.analysis.milestones.entries()) {
       await tx.execute({
         sql: `INSERT INTO milestones (gig_id, position, title, description, percent, amount_cents)

@@ -5,7 +5,7 @@ import { isAiConfigured } from "@/lib/ai/service";
 import { isPayPalConfigured } from "@/lib/paypal";
 import { formatDate, formatMoney } from "@/lib/format";
 import { JourneySteps } from "@/components/JourneySteps";
-import { Card, CardHeader, SourceBadge, StatusBadge } from "@/components/ui/primitives";
+import { ButtonLink, Card, CardHeader, SourceBadge, StatusBadge } from "@/components/ui/primitives";
 import { PlanEditor } from "@/components/project/PlanEditor";
 import { MilestonePayments } from "@/components/project/MilestonePayments";
 import { ProposalEditor } from "@/components/project/ProposalEditor";
@@ -52,8 +52,8 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
             </div>
             <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em] sm:text-[30px]">{gig.title}</h1>
             <p className="mt-1 text-sm text-muted">
-              {gig.clientName || "No client name"} · Created {formatDate(gig.createdAt)} ·{" "}
-              <span className="font-mono text-ink">{formatMoney(gig.priceCents ?? 0)}</span>
+              {gig.clientName || "No client name"} · Created {formatDate(gig.createdAt)}
+              {gig.priceCents ? <> · <span className="font-mono text-ink">{formatMoney(gig.priceCents)}</span></> : " · Not priced yet"}
               {paid > 0 && <> · <span className="font-mono text-brand">{formatMoney(paid)} received</span></>}
             </p>
           </div>
@@ -67,6 +67,10 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
         <JourneySteps compact current={gig.status === "paid" ? 6 : JOURNEY_POSITION[gig.status]} />
       </div>
 
+      {gig.status === "opportunity" ? (
+        <OpportunityPanel id={gig.id} description={gig.description} />
+      ) : (
+      <>
       <nav aria-label="Project sections" className="flex gap-1 border-b border-line">
         {TABS.map((t) => (
           <Link key={t.key} href={`?tab=${t.key}`} scroll={false} aria-current={tab === t.key ? "page" : undefined}
@@ -124,6 +128,27 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
           )}
         </div>
       )}
+      </>
+      )}
+    </div>
+  );
+}
+
+/** A saved lead that hasn't been analysed: show the brief and the next step. */
+function OpportunityPanel({ id, description }: { id: number; description: string }) {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <Card>
+        <CardHeader title="Job description" description="Saved to your pipeline, not analysed yet" />
+        <p className="whitespace-pre-wrap px-5 py-4 text-sm text-ink-soft">{description}</p>
+      </Card>
+      <Card className="h-fit p-5">
+        <p className="font-semibold">Next: analyse this opportunity</p>
+        <p className="mt-1 text-[13px] text-muted">
+          Get requirements, a price range and a milestone plan you can review before it becomes a payable project.
+        </p>
+        <ButtonLink href={`/app/studio?gig=${id}`} className="mt-4 w-full">Analyse in AI Gig Studio</ButtonLink>
+      </Card>
     </div>
   );
 }

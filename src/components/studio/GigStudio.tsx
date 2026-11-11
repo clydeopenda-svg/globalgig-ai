@@ -16,11 +16,20 @@ const LOADING_STEPS = ["Reading the client's requirements", "Estimating effort a
 
 type Phase = "idle" | "loading" | "result";
 
-export function GigStudio({ aiConfigured }: { aiConfigured: boolean }) {
+/** An opportunity saved earlier, opened in the studio to be analysed. */
+export interface StudioOpportunity {
+  id: number;
+  title: string;
+  description: string;
+  clientName: string;
+}
+
+export function GigStudio({ aiConfigured, opportunity }: { aiConfigured: boolean; opportunity?: StudioOpportunity }) {
   const router = useRouter();
   const toast = useToast();
-  const [description, setDescription] = useState("");
-  const [clientName, setClientName] = useState("");
+  const [description, setDescription] = useState(opportunity?.description ?? "");
+  const [clientName, setClientName] = useState(opportunity?.clientName ?? "");
+  const [savingOpportunity, setSavingOpportunity] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<{ message: string; code?: string } | null>(null);
   const [analysis, setAnalysis] = useState<GigAnalysis | null>(null);
@@ -67,7 +76,12 @@ export function GigStudio({ aiConfigured }: { aiConfigured: boolean }) {
 
   function useDemo() {
     // Demo mode analyses the built-in example brief only, so the sample
-    // output always matches the text on screen.
+    // output always matches the text on screen. A saved opportunity with its
+    // own text can't use it, or the sample would masquerade as its analysis.
+    if (opportunity && description.trim() !== EXAMPLE_BRIEF) {
+      toast.error("Demo mode only covers the built-in example brief. Add ANTHROPIC_API_KEY to analyse this opportunity.");
+      return;
+    }
     setDescription(EXAMPLE_BRIEF);
     setError(null);
     loadResult(DEMO_ANALYSIS, "demo");
@@ -96,13 +110,26 @@ export function GigStudio({ aiConfigured }: { aiConfigured: boolean }) {
         })),
       };
       const { id } = await api<{ id: number }>("/api/gigs", {
-        body: { description, clientName, analysis: edited, source, priceDollars: price },
+        body: { description, clientName, analysis: edited, source, priceDollars: price, gigId: opportunity?.id },
       });
-      toast.success("Project created with its payment milestones.");
+      toast.success(opportunity ? "Opportunity analysed and priced." : "Project created with its payment milestones.");
       router.push(`/app/projects/${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't save the project.");
       setSaving(false);
+    }
+  }
+
+  // Capture a lead now, analyse it later: it lands in the "Opportunity" stage.
+  async function saveOpportunity() {
+    setSavingOpportunity(true);
+    try {
+      const { id } = await api<{ id: number }>("/api/gigs", { body: { kind: "opportunity", description, clientName } });
+      toast.success("Saved to your pipeline as an opportunity.");
+      router.push(`/app/projects/${id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't save the opportunity.");
+      setSavingOpportunity(false);
     }
   }
 
@@ -113,6 +140,12 @@ export function GigStudio({ aiConfigured }: { aiConfigured: boolean }) {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
       {/* Input column */}
       <div className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+        {opportunity && (
+          <div className="rounded-lg border border-line bg-surface px-4 py-3 text-[13px]">
+            <p className="text-muted">Analysing saved opportunity</p>
+            <p className="font-medium">{opportunity.title}</p>
+          </div>
+        )}
         <Card className="p-5">
           <div className="space-y-4">
             <Field label="Job description" htmlFor="brief" hint="Paste the full post from Upwork, LinkedIn, email or anywhere else.">
@@ -138,6 +171,16 @@ export function GigStudio({ aiConfigured }: { aiConfigured: boolean }) {
                 <Button variant="ghost" onClick={() => setDescription(EXAMPLE_BRIEF)}>Use example</Button>
               )}
             </div>
+            {!opportunity && !analysis && (
+              <button
+                type="button"
+                onClick={saveOpportunity}
+                disabled={description.trim().length < 40 || savingOpportunity || phase === "loading"}
+                className="text-[13px] font-medium text-ink-soft underline-offset-2 hover:text-ink hover:underline disabled:opacity-40 disabled:no-underline"
+              >
+                {savingOpportunity ? "Saving…" : "Not ready yet? Save as an opportunity and analyse later"}
+              </button>
+            )}
             {!aiConfigured && (
               <p className="rounded-md bg-amber-soft px-3 py-2 text-[12.5px] text-amber">
                 AI isn&apos;t configured on this server (ANTHROPIC_API_KEY missing). You can still explore with the labelled demo.
@@ -261,7 +304,7 @@ export function GigStudio({ aiConfigured }: { aiConfigured: boolean }) {
                 <span className="font-mono font-semibold text-brand">${price.toLocaleString("en-US")}</span>
                 <span className="text-muted"> · {milestones.length} milestones</span>
               </p>
-              <Button onClick={save} loading={saving} disabled={percentTotal !== 100}>Save as project →</Button>
+              <Button onClick={save} loading={saving} disabled={percentTotal !== 100}>{opportunity ? "Save analysis →" : "Save as project →"}</Button>
             </div>
           </div>
         )}
