@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+/*
+  GlobalGig design tokens. Components use the token names (bg-surface,
+  text-muted, border-line, bg-brand ...) — never raw hex values — so the
+  palette can be tuned in one place. Green is reserved for money, progress
+  and success.
+*/
+:root {
+  --canvas: #f8f8f5;
+  --surface: #ffffff;
+  --ink: #17191c;
+  --ink-soft: #3a3e43;
+  --muted: #777d78;
+  --line: #e6e6e0;
+  --line-strong: #d6d6cf;
+
+  --brand: #176b50;
+  --brand-hover: #125a43;
+  --brand-ink: #ffffff;
+  --mint: #e7f3ec;
+  --mint-strong: #cfe7d9;
+
+  --amber: #8a5a00;
+  --amber-soft: #fbf1dc;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --info: #2d4f8a;
+  --info-soft: #e9eef8;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
+  --color-mint: var(--mint);
+  --color-mint-strong: var(--mint-strong);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--mint-strong);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Restrained page-enter motion, used by the workspace template. */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-page-in { animation: page-in 220ms ease-out both; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-toast-in { animation: toast-in 180ms ease-out both; }
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--line) 0%, #f1f1ec 50%, var(--line) 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 6px;
+}
+
+dialog::backdrop {
+  background: rgb(23 25 28 / 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-in, .animate-toast-in, .skeleton { animation: none; }
+}
