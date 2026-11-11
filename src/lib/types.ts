@@ -116,3 +116,14 @@ export interface FreelancerProfile {
   skills: string;
   hourlyRate: number | null;
 }
+
+/** A standalone AI price recommendation for an existing project. */
+export interface PricingRecommendation {
+  estimatedHours: { low: number; high: number };
+  hourlyRateAssumed: number;
+  minimum: number;
+  recommended: number;
+  premium: number;
+  factors: { factor: string; effect: "raises" | "lowers" | "neutral"; detail: string }[];
+  rationale: string;
+}

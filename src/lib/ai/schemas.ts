@@ -49,3 +49,15 @@ export const ProposalSchema = z.object({
   paymentTerms: z.string().describe("Milestone payment schedule, paid via PayPal"),
   closing: z.string().describe("Short call to action and sign-off"),
 });
+
+export const PricingSchema = z.object({
+  estimatedHours: z.object({ low: z.number(), high: z.number() }),
+  hourlyRateAssumed: z.number().describe("USD per hour the estimate assumes"),
+  minimum: z.number().describe("Whole USD; floor price for a lean scope"),
+  recommended: z.number().describe("Whole USD; fair price for the current scope"),
+  premium: z.number().describe("Whole USD; price with extras such as faster delivery or extended support"),
+  factors: z
+    .array(z.object({ factor: z.string(), effect: z.enum(["raises", "lowers", "neutral"]), detail: z.string() }))
+    .describe("3-6 factors that drove the price: complexity, skills, hours, timeline, scope"),
+  rationale: z.string().describe("2-3 sentences explaining the recommendation"),
+});

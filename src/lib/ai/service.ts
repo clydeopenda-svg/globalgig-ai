@@ -2,9 +2,9 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
-import { AnalysisSchema, ProposalSchema } from "./schemas";
+import { AnalysisSchema, PricingSchema, ProposalSchema } from "./schemas";
 import { formatMoney } from "@/lib/format";
-import type { FreelancerProfile, GigAnalysis, Milestone, Proposal } from "@/lib/types";
+import type { FreelancerProfile, GigAnalysis, Milestone, PricingRecommendation, Proposal } from "@/lib/types";
 
 // Reusable backend AI service. Every call does real inference against the
 // Claude API and returns schema-validated JSON. The API key stays on the
@@ -177,4 +177,59 @@ Key risks to address proactively: ${input.analysis.risks.map((r) => r.risk).join
 Payments are made per milestone through PayPal. Keep each section to a short paragraph.`,
     6000,
   );
+}
+
+/**
+ * Re-prices an existing project against its *current* scope: the edited
+ * milestone plan, timeline and any note from the freelancer (e.g. "client
+ * needs it in 3 weeks"). Separate from analysis so pricing can be revisited
+ * without re-analysing the whole brief.
+ */
+export async function recommendPricing(input: {
+  description: string;
+  analysis: GigAnalysis;
+  milestones: Milestone[];
+  currentPriceCents: number;
+  note: string;
+  profile: FreelancerProfile;
+}): Promise<PricingRecommendation> {
+  const plan = input.milestones.map((m, i) => `${i + 1}. ${m.title}: ${m.description}`).join("\n");
+  const r = await generate(
+    PricingSchema,
+    `Recommend a price for this freelance project as it is currently scoped.
+
+<freelancer>
+${profileContext(input.profile)}
+</freelancer>
+
+<job_description>
+${input.description}
+</job_description>
+
+<current_scope>
+Complexity: ${input.analysis.complexity.level} (${input.analysis.complexity.rationale})
+Skills: ${input.analysis.skills.join(", ")}
+Timeline: ${input.analysis.timeline.weeks} weeks
+Milestone plan:
+${plan}
+Current quoted price: ${formatMoney(input.currentPriceCents)}
+</current_scope>
+
+<freelancer_note>
+${input.note || "None."}
+</freelancer_note>
+
+Weigh complexity, required skills, estimated hours, delivery timeline and scope. Reflect the note if it changes scope or urgency. minimum < recommended < premium.`,
+    4000,
+  );
+  const [minimum, recommended, premium] = [r.minimum, r.recommended, r.premium].map((n) => Math.max(1, Math.round(n))).sort((a, b) => a - b);
+  const low = Math.max(1, Math.round(Math.min(r.estimatedHours.low, r.estimatedHours.high)));
+  return {
+    ...r,
+    minimum,
+    recommended,
+    premium,
+    hourlyRateAssumed: Math.round(r.hourlyRateAssumed),
+    estimatedHours: { low, high: Math.max(low, Math.round(Math.max(r.estimatedHours.low, r.estimatedHours.high))) },
+  };
 }

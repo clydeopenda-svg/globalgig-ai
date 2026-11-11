@@ -27,8 +27,8 @@ Find an opportunity → Analyse with AI → Set a price → Generate proposal �
 | --- | --- |
 | Landing page | Hero, interactive product preview, benefits, how it works |
 | Overview | Setup status, AI Studio entry point, real pipeline (Opportunity → Analysed → Proposal → In progress → Paid), totals from real payments |
-| AI Gig Studio | Structured AI analysis. Every field is editable (title, summary, requirements, skills, milestones, price) |
-| Smart pricing | Minimum, recommended and premium prices (USD) with rationale, plus a custom price. Labelled as estimates |
+| AI Gig Studio | Structured AI analysis. Every field is editable (title, summary, requirements, skills, milestones, price). Posts can also be saved as un-analysed **opportunities** and analysed later |
+| Smart pricing | Minimum, recommended and premium prices (USD) with rationale, plus a custom price. On a project, **Re-price with AI** reconsiders the current scope plus an optional note ("client needs it in 3 weeks") and lists the factors that moved the price. Applying a price is always the freelancer's click |
 | Milestones | Create, edit, remove and re-split milestones, with live amount preview and progress. Paid milestones are locked |
 | Proposals | AI-written proposal in a document-style editor. Save, regenerate, copy as plain text |
 | PayPal payment center | Orders API v2: create the order on the server, buyer approval with the JS SDK, server-side capture and verification |
@@ -101,9 +101,10 @@ src/
     pay/[milestoneId]/               Client-facing PayPal checkout page
     api/
       ai/analyse                     POST: AI job analysis (no persistence)
-      gigs, gigs/[id]                Create, rename, delete projects
+      gigs, gigs/[id]                Create opportunities/projects, rename, delete
       gigs/[id]/milestones           PUT: price + milestone plan
       gigs/[id]/proposal             POST: generate (AI/demo), PUT: save edits
+      gigs/[id]/pricing              POST: AI price recommendation (not saved)
       milestones/[id]                PATCH: pending ↔ in progress (never "paid")
       paypal/orders                  POST: create order (amount from DB)
       paypal/orders/[id]/capture     POST: capture + verify + record

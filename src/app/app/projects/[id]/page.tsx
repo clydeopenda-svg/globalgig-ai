@@ -10,6 +10,7 @@ import { PlanEditor } from "@/components/project/PlanEditor";
 import { MilestonePayments } from "@/components/project/MilestonePayments";
 import { ProposalEditor } from "@/components/project/ProposalEditor";
 import { ProjectActions } from "@/components/project/ProjectActions";
+import { SmartPricing } from "@/components/project/SmartPricing";
 import type { GigStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -83,7 +84,10 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
 
       {tab === "plan" && (
         <div className="grid gap-6 xl:grid-cols-2">
-          <MilestonePayments milestones={milestones} payments={payments} paypalConfigured={isPayPalConfigured()} />
+          <div className="space-y-6">
+            <MilestonePayments milestones={milestones} payments={payments} paypalConfigured={isPayPalConfigured()} />
+            <SmartPricing gigId={gig.id} priceCents={gig.priceCents ?? 0} milestones={milestones} aiConfigured={isAiConfigured()} />
+          </div>
           <PlanEditor
             key={`${gig.updatedAt}-${milestones.map((m) => `${m.id}${m.status}`).join()}`}
             gigId={gig.id}
