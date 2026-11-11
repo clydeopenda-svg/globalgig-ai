@@ -90,10 +90,10 @@ export default async function OverviewPage() {
                         >
                           <p className="line-clamp-2 text-[13.5px] font-medium leading-snug">{g.title}</p>
                           {g.clientName && <p className="mt-0.5 truncate text-[12px] text-muted">{g.clientName}</p>}
-                          <div className="mt-2.5 flex items-center justify-between gap-2">
-                            <span className="font-mono text-[12px] text-ink-soft">{g.priceCents ? formatMoney(g.priceCents) : "—"}</span>
-                            {g.analysisSource === "demo" && <SourceBadge source="demo" />}
-                          </div>
+                          {g.analysisSource === "demo" && <div className="mt-2"><SourceBadge source="demo" /></div>}
+                          <p className="mt-2 font-mono text-[12px] text-ink-soft">
+                            {g.priceCents ? formatMoney(g.priceCents) : "Not priced yet"}
+                          </p>
                           {g.priceCents ? (
                             <div className="mt-2 h-1 overflow-hidden rounded-full bg-ink/[0.06]">
                               <div className="h-full bg-brand" style={{ width: `${Math.min(100, (g.paidCents / g.priceCents) * 100)}%` }} />

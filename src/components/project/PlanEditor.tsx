@@ -55,7 +55,7 @@ export function PlanEditor({
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label htmlFor="project-price" className="text-[13px] font-medium text-ink-soft">Project price (USD)</label>
-            <input id="project-price" inputMode="decimal" className={`${inputClass} mt-1 w-40 font-mono text-base`} value={price}
+            <input id="project-price" inputMode="decimal" className={`${inputClass} mt-1 w-40! font-mono text-base`} value={price}
               onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g, ""))} />
           </div>
           {pricing && (

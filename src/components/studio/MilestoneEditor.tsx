@@ -45,7 +45,7 @@ export function MilestoneEditor({
               <input
                 aria-label={`Milestone ${i + 1} percent`}
                 inputMode="numeric"
-                className={`${inputClass} w-16 text-right font-mono`}
+                className={`${inputClass} w-16! text-right font-mono`}
                 value={m.percent}
                 disabled={m.paid}
                 onChange={(e) => update(i, { percent: Number(e.target.value.replace(/\D/g, "")) || 0 })}
