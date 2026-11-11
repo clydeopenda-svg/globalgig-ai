@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
 import { AnalysisSchema } from "@/lib/ai/schemas";
-import { createOpportunity, saveAnalysedGig } from "@/lib/db/queries";
+import { createOpportunity, listGigs, saveAnalysedGig } from "@/lib/db/queries";
 import { cleanText, handleRouteError, jsonError, parseId, readJson } from "@/lib/api";
+
+// GET /api/gigs — compact project list (used by the command menu search).
+export async function GET() {
+  try {
+    const gigs = await listGigs();
+    return NextResponse.json({
+      gigs: gigs.map((g) => ({ id: g.id, title: g.title, clientName: g.clientName, status: g.status })),
+    });
+  } catch (err) {
+    return handleRouteError(err);
+  }
+}
 
 // POST /api/gigs — two ways to add work to the pipeline:
 //   { kind: "opportunity", description, clientName, title? }

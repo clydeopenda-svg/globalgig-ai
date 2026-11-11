@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
+import { Kbd, openCommandMenu } from "./CommandMenu";
 
 const NAV = [
   { href: "/app", label: "Overview", icon: "M3 10.5 10 4l7 6.5V16a1 1 0 0 1-1 1h-3.5v-4h-5v4H4a1 1 0 0 1-1-1z" },
@@ -46,6 +47,19 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+function SearchButton({ onOpen }: { onOpen?: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => { onOpen?.(); openCommandMenu(); }}
+      className="flex w-full items-center justify-between rounded-md border border-line bg-surface px-2.5 py-1.5 text-[13px] text-muted hover:border-line-strong hover:text-ink"
+    >
+      <span>Search or jump to…</span>
+      <span className="flex gap-0.5"><Kbd>Ctrl</Kbd><Kbd>K</Kbd></span>
+    </button>
+  );
+}
+
 function SidebarFooter() {
   return (
     <div className="rounded-lg border border-line bg-surface p-3 text-[12.5px]">
@@ -73,6 +87,7 @@ export function Sidebar() {
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 border-r border-line px-3 py-5 lg:flex">
         <div className="px-2"><Logo href="/app" /></div>
+        <SearchButton />
         <NavLinks />
         <div className="mt-auto"><SidebarFooter /></div>
       </aside>
@@ -98,6 +113,7 @@ export function Sidebar() {
               <Logo href="/app" />
               <button type="button" onClick={() => setOpen(false)} className="text-xl text-muted" aria-label="Close menu">×</button>
             </div>
+            <SearchButton onOpen={() => setOpen(false)} />
             <NavLinks onNavigate={() => setOpen(false)} />
             <div className="mt-auto"><SidebarFooter /></div>
           </div>

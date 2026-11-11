@@ -33,6 +33,7 @@ Find an opportunity → Analyse with AI → Set a price → Generate proposal �
 | Proposals | AI-written proposal in a document-style editor. Save, regenerate, copy as plain text |
 | PayPal payment center | Orders API v2: create the order on the server, buyer approval with the JS SDK, server-side capture and verification |
 | Payment history | Project, buyer, amount, PayPal capture and order IDs, status, environment, date |
+| Command menu | Ctrl/⌘+K from anywhere in the workspace: jump to pages or search projects with the keyboard |
 | Settings | Freelancer profile (name, headline, skills, hourly rate) that personalises pricing and proposals; integration status |
 
 ### Honesty rules built in
