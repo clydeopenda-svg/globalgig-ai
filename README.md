@@ -6,6 +6,8 @@ GlobalGig AI is a freelance business assistant that turns a job post into a pric
 
 Built for the PayPal AI Hackathon 2026.
 
+**Live demo:** https://globalgig-ai.vercel.app (runs in labelled demo mode; see [Deploying to Vercel](#deploying-to-vercel))
+
 ```
 Find an opportunity → Analyse with AI → Set a price → Generate proposal → Request payment → Get paid
 ```

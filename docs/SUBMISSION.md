@@ -49,7 +49,7 @@ PayPal webhooks for refunds and disputes, multi-currency support, user accounts,
 
 ## Links
 - Source code: https://github.com/clydeopenda-svg/globalgig-ai
-- Live demo: _add after deployment_
+- Live demo: https://globalgig-ai.vercel.app
 - Demo video: _add after recording_
 
 ---
