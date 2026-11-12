@@ -11,12 +11,24 @@ import { SCHEMA } from "./schema";
 // Server-only: never import this from a "use client" component.
 
 let client: Client | undefined;
+
+// Where the database lives. Order of preference:
+// 1. TURSO_DATABASE_URL: a persistent hosted database (recommended for hosting).
+// 2. On Vercel without Turso: /tmp, the only writable path in a serverless
+//    function. This keeps a zero-config demo deploy working, but data is
+//    per-instance and resets on cold starts, so it's for demos only.
+// 3. Locally: globalgig.db in the project root.
+function databaseUrl(): string {
+  if (process.env.TURSO_DATABASE_URL) return process.env.TURSO_DATABASE_URL;
+  if (process.env.VERCEL) return "file:/tmp/globalgig.db";
+  return "file:globalgig.db";
+}
 let ready: Promise<void> | undefined;
 
 export async function getDb(): Promise<Client> {
   if (!client) {
     client = createClient({
-      url: process.env.TURSO_DATABASE_URL || "file:globalgig.db",
+      url: databaseUrl(),
       authToken: process.env.TURSO_AUTH_TOKEN || undefined,
     });
   }

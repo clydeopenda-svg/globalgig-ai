@@ -81,6 +81,14 @@ The database tables are created automatically on first request (`globalgig.db`).
 
 The PayPal API base URL is hard-coded to `api-m.sandbox.paypal.com`, so real money can never move.
 
+## Deploying to Vercel
+
+1. On [vercel.com/new](https://vercel.com/new), import this GitHub repository. Vercel detects Next.js and needs no build settings.
+2. Add the environment variables above under **Settings → Environment Variables**. All of them are optional for a first deploy.
+3. Deploy.
+
+Without `TURSO_DATABASE_URL`, the app stores data in `/tmp` on Vercel. That works for a quick demo, but data resets when the server restarts. Add a free Turso database for data that persists.
+
 ## Scripts
 
 ```bash
